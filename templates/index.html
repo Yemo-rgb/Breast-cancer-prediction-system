@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+        }
+        .disclaimer {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 48%;
+            padding: 10px;
+            margin: 5px 1%;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-predict {
+            background: #667eea;
+            color: white;
+        }
+        .btn-reset {
+            background: #ddd;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result-benign {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .result-malignant {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🩺 Breast Cancer Prediction</h1>
+        
+        <div class="disclaimer">
+            <strong>⚠️ Educational Purpose Only</strong><br>
+            This is for educational purposes. Always consult healthcare professionals.
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label>Mean Radius</label>
+                <input type="number" step="0.01" name="mean radius" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mean Texture</label>
+                <input type="number" step="0.01" name="mean texture" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mean Perimeter</label>
+                <input type="number" step="0.01" name="mean perimeter" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mean Area</label>
+                <input type="number" step="0.01" name="mean area" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mean Concavity</label>
+                <input type="number" step="0.01" name="mean concavity" required>
+            </div>
+
+            <button type="submit" class="btn-predict">🔍 Predict</button>
+            <button type="reset" class="btn-reset">🔄 Reset</button>
+        </form>
+
+        <div class="result" id="result">
+            <h2 id="resultTitle"></h2>
+            <p><strong>Benign Probability:</strong> <span id="benignProb"></span></p>
+            <p><strong>Malignant Probability:</strong> <span id="malignantProb"></span></p>
+            <p><strong>Confidence:</strong> <span id="confidence"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('resultTitle').textContent = 
+                        'Prediction: ' + data.prediction;
+                    document.getElementById('benignProb').textContent = 
+                        (data.probability_benign * 100).toFixed(2) + '%';
+                    document.getElementById('malignantProb').textContent = 
+                        (data.probability_malignant * 100).toFixed(2) + '%';
+                    document.getElementById('confidence').textContent = 
+                        data.confidence.toFixed(2) + '%';
+                    
+                    result.className = 'result';
+                    if (data.prediction === 'Benign') {
+                        result.classList.add('result-benign');
+                    } else {
+                        result.classList.add('result-malignant');
+                    }
+                    result.style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error connecting to server');
+            }
+        });
+
+        form.addEventListener('reset', () => {
+            result.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
